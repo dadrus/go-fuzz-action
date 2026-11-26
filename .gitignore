@@ -1,0 +1,18 @@
+# uv and package builds
+.venv/
+dist/
+*.egg-info/
+.uv/
+
+# Python caches and local test output
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# IDE specific folders
+.idea/
