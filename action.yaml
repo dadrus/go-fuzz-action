@@ -1,0 +1,69 @@
+name: Native Go Fuzzing
+description: Analyze one native Go fuzz target, replay errors, and export corpora and JSONL/SARIF
+inputs:
+  package:
+    description: Exact Go package import path
+    required: true
+  target:
+    description: Exact Go fuzz function name
+    required: true
+  fuzztime:
+    description: Go fuzz time budget per target (e.g. 30s)
+    required: false
+    default: '30s'
+  results-format:
+    description: jsonl or sarif
+    required: false
+    default: jsonl
+  coverage-corpus:
+    description: Directory containing Go's native fuzz cache files
+    required: false
+    default: ''
+  error-corpus:
+    description: Directory containing previous Go failing-input files
+    required: false
+    default: ''
+outputs:
+  results-file:
+    description: Absolute path to the generated JSONL/SARIF report
+    value: ${{ steps.fuzz.outputs.results-file }}
+  findings-count:
+    description: Number of distinct currently failing file inputs and native seeds
+    value: ${{ steps.fuzz.outputs.findings-count }}
+  coverage-corpus:
+    description: Absolute path to updated native Go coverage corpus directory
+    value: ${{ steps.fuzz.outputs.coverage-corpus }}
+  error-corpus:
+    description: Absolute path to updated native Go error corpus directory
+    value: ${{ steps.fuzz.outputs.error-corpus }}
+runs:
+  using: composite
+  steps:
+    - name: Analyze one Go fuzz target
+      id: fuzz
+      shell: bash
+      env:
+        GO_FUZZ_PACKAGE: ${{ inputs.package }}
+        GO_FUZZ_TARGET: ${{ inputs.target }}
+        GO_FUZZ_TIME: ${{ inputs.fuzztime }}
+        GO_FUZZ_RESULTS_FORMAT: ${{ inputs.results-format }}
+        GO_FUZZ_COVERAGE_CORPUS: ${{ inputs.coverage-corpus }}
+        GO_FUZZ_ERROR_CORPUS: ${{ inputs.error-corpus }}
+      run: |
+        set -euo pipefail
+        result="$(env -u GITHUB_OUTPUT python3 -I "$GITHUB_ACTION_PATH" \
+          --workspace "$GITHUB_WORKSPACE" \
+          --package="$GO_FUZZ_PACKAGE" \
+          --target="$GO_FUZZ_TARGET" \
+          --fuzztime="$GO_FUZZ_TIME" \
+          --results-format="$GO_FUZZ_RESULTS_FORMAT" \
+          --coverage-corpus="$GO_FUZZ_COVERAGE_CORPUS" \
+          --error-corpus="$GO_FUZZ_ERROR_CORPUS")"
+
+        outputs="$(jq -er '
+          "results-file=\(.results_file)",
+          "findings-count=\(.findings_count)",
+          "coverage-corpus=\(.coverage_corpus)",
+          "error-corpus=\(.error_corpus)"
+        ' <<< "$result")"
+        printf '%s\n' "$outputs" >> "$GITHUB_OUTPUT"
