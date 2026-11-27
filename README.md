@@ -1,3 +1,6 @@
+[![CI](https://github.com/dadrus/go-fuzz-action/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dadrus/go-fuzz-action/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/dadrus/go-fuzz-action/branch/main/graph/badge.svg)](https://codecov.io/gh/dadrus/go-fuzz-action)
+
 # Go Fuzz Action
 
 This action enables continuous fuzzing workflows for Go projects using Go's [native fuzzing support](https://go.dev/doc/security/fuzz/) by:
