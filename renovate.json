@@ -1,0 +1,92 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitScopeDisabled",
+    ":semanticCommitTypeAll(chore)",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "packageRules": [
+    {
+      "description": "Pin Python package dependencies to exact versions.",
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDatasources": [
+        "pypi"
+      ],
+      "rangeStrategy": "pin"
+    },
+    {
+      "description": "Runtime dependencies of the composite action belong in the changelog.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchFileNames": [
+        "action.yaml"
+      ],
+      "semanticCommitType": "deps",
+      "additionalBranchPrefix": "runtime-"
+    },
+    {
+      "description": "Runtime Python dependencies belong in the changelog.",
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDepTypes": [
+        "project.dependencies",
+        "project.optional-dependencies"
+      ],
+      "semanticCommitType": "deps",
+      "additionalBranchPrefix": "runtime-"
+    },
+    {
+      "description": "Propose changes to the minimum supported Python version without pinning the compatibility range.",
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDepTypes": [
+        "requires-python"
+      ],
+      "rangeStrategy": "bump",
+      "semanticCommitType": "deps",
+      "additionalBranchPrefix": "runtime-"
+    },
+    {
+      "description": "Update uv and its build backend together.",
+      "matchManagers": [
+        "custom.regex",
+        "pep621"
+      ],
+      "matchPackageNames": [
+        "uv",
+        "uv-build"
+      ],
+      "groupName": "uv toolchain"
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "configMigration": true,
+  "assigneesFromCodeOwners": true,
+  "addLabels": [
+    "dependency"
+  ],
+  "automerge": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)pyproject\\.toml$/"
+      ],
+      "matchStrings": [
+        "(?:^|\\r?\\n)\\[tool\\.uv\\][ \\t]*\\r?\\nrequired-version[ \\t]*=[ \\t]*\"==(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "pypi",
+      "depNameTemplate": "uv",
+      "versioningTemplate": "pep440"
+    }
+  ]
+}

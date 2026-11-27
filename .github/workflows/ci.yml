@@ -1,4 +1,4 @@
-name: CI
+name: Action CI
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: '0.13.10'
+          version-file: pyproject.toml
       - name: Install project and development tools from the lockfile
         run: uv sync --locked
       - name: Audit Python dependencies for known vulnerabilities
@@ -55,7 +55,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: '0.13.10'
+          version-file: pyproject.toml
       - name: Install project and development tools from the lockfile
         run: uv sync --locked
       - name: Ruff lint (including security rules)
@@ -83,7 +83,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: '0.13.10'
+          version-file: pyproject.toml
       - name: Install project and development tools from the lockfile
         run: uv sync --locked
       - name: Unit tests
@@ -100,7 +100,7 @@ jobs:
 
   integration-tests:
     name: Integration tests
-    needs: unit-tests
+    needs: [security, lint, unit-tests]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -117,7 +117,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: '0.13.10'
+          version-file: pyproject.toml
       - name: Install project from the lockfile
         run: uv sync --locked --no-dev
       - name: Install Go
@@ -130,7 +130,7 @@ jobs:
 
   build:
     name: Build
-    needs: unit-tests
+    needs: integration-tests
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -147,6 +147,6 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: '0.13.10'
+          version-file: pyproject.toml
       - name: Verify package build
         run: uv build
