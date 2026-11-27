@@ -28,7 +28,7 @@ class TestCliEntrypoint(unittest.TestCase):
                 "}\n"
             )
 
-            # A module with the same name in the consuming project must not shadow the Action.
+            # The consuming project and PYTHONPATH must not shadow the Action.
             (project / "go_fuzz.py").write_text('raise RuntimeError("wrong module")\n')
 
             output = root / "github.outputs"
@@ -36,6 +36,7 @@ class TestCliEntrypoint(unittest.TestCase):
             env.update(
                 {
                     "GITHUB_ACTION_PATH": str(action_path),
+                    "PYTHONPATH": str(project),
                     "GITHUB_WORKSPACE": str(project),
                     "RUNNER_TEMP": str(root),
                     "GITHUB_OUTPUT": str(output),
