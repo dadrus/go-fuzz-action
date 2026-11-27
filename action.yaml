@@ -1,5 +1,11 @@
-name: Native Go Fuzzing
-description: Analyze one native Go fuzz target, replay errors, and export corpora and JSONL/SARIF
+name: Go Fuzz Action
+description: Native Go fuzzing with corpus reuse and SARIF reporting for continuous fuzzing workflows.
+author: dadrus
+
+branding:
+  icon: activity
+  color: blue
+
 inputs:
   package:
     description: Exact Go package import path
@@ -23,6 +29,7 @@ inputs:
     description: Directory containing previous Go failing-input files
     required: false
     default: ''
+
 outputs:
   results-file:
     description: Absolute path to the generated JSONL/SARIF report
