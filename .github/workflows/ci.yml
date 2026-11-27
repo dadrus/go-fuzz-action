@@ -27,11 +27,10 @@ jobs:
         uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
         with:
           advanced-security: false
-          version: 'v1.33.1'
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          version: '0.13.9'
+          version: '0.13.10'
       - name: Install project and development tools from the lockfile
         run: uv sync --locked
       - name: Audit Python dependencies for known vulnerabilities
