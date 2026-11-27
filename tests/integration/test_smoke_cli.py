@@ -51,7 +51,7 @@ class TestCliEntrypoint(unittest.TestCase):
 
             # The adapter contains a single literal shell block and no later steps.
             shell = (
-                (action_path / "action.yml").read_text().split("      run: |\n", 1)[1]
+                (action_path / "action.yaml").read_text().split("      run: |\n", 1)[1]
             )
 
             # WHEN

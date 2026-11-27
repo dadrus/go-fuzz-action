@@ -17,7 +17,7 @@ class TestActionAdapter(unittest.TestCase):
         self.output.write_text("existing=value\n")
 
         action = Path(__file__).resolve().parents[2]
-        self.shell = (action / "action.yml").read_text().split("      run: |\n", 1)[1]
+        self.shell = (action / "action.yaml").read_text().split("      run: |\n", 1)[1]
         (self.root / "__main__.py").write_bytes((action / "__main__.py").read_bytes())
 
         # Replace only the CLI at the adapter boundary. Run Bash and jq for real.
