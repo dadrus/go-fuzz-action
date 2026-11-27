@@ -17,6 +17,7 @@ module-root = ""
 
 [dependency-groups]
 dev = [
+    "coverage>=7.16.2",
     "mypy>=2.4,<2.5",
     "ruff>=0.17,<0.18",
 ]
@@ -71,3 +72,7 @@ show_error_codes = true
 
 [tool.uv]
 required-version = ">=0.10,<0.14"
+
+[tool.coverage.run]
+branch = true
+source = ["go_fuzz"]
