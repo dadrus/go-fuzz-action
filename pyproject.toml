@@ -71,3 +71,7 @@ show_error_codes = true
 
 [tool.uv]
 required-version = ">=0.10,<0.14"
+
+[tool.coverage.run]
+branch = true
+source = ["go_fuzz"]
