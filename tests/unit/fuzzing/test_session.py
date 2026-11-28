@@ -25,9 +25,7 @@ PASSED = TestOutcome(False, frozenset(), "", None)
 
 class TestSession(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.project = self.root / "project"
         self.package = self.project / "nested"
         self.package.mkdir(parents=True)
@@ -36,26 +34,22 @@ class TestSession(unittest.TestCase):
         self.errors.mkdir()
         self.coverage.mkdir()
 
-        env = patch.dict(os.environ, {"RUNNER_TEMP": str(self.root)})
-        env.start()
-        self.addCleanup(env.stop)
+        self.enterContext(patch.dict(os.environ, {"RUNNER_TEMP": str(self.root)}))
 
-        resolver = patch("go_fuzz.fuzzing.session.Target.resolve", autospec=True)
-        self.resolver = resolver.start()
-        self.addCleanup(resolver.stop)
+        self.resolver = self.enterContext(
+            patch("go_fuzz.fuzzing.session.Target.resolve", autospec=True),
+        )
         self.resolver.side_effect = self.resolve_package
 
-        runner = patch("go_fuzz.fuzzing.session.Runner", autospec=True)
-        self.runner_class = runner.start()
-        self.addCleanup(runner.stop)
+        self.runner_class = self.enterContext(
+            patch("go_fuzz.fuzzing.session.Runner", autospec=True),
+        )
         self.runner = self.runner_class.return_value
         self.runner.run.side_effect = self.run_test
 
-        outcome = patch(
-            "go_fuzz.fuzzing.session.TestOutcome.classify", return_value=PASSED
+        self.read_outcome = self.enterContext(
+            patch("go_fuzz.fuzzing.session.TestOutcome.classify", return_value=PASSED),
         )
-        self.read_outcome = outcome.start()
-        self.addCleanup(outcome.stop)
 
     def config(self, **overrides):
         return Config(
@@ -380,6 +374,41 @@ class TestSession(unittest.TestCase):
             # THEN
             self.assertEqual(list(result.coverage), [])
 
+    def test_unverifiable_cache_is_not_treated_as_empty(self):
+        # GIVEN
+        original_stat = os.stat
+
+        def run(*arguments):
+            result = self.run_test(*arguments)
+            _, env, _ = self.runner_class.call_args.args
+            cache = Path(env["GOCACHE"]) / "fuzz" / PACKAGE / "FuzzA"
+
+            def stat(path, **kwargs):
+                if isinstance(path, (str, Path)) and Path(path) == cache:
+                    raise PermissionError("access denied")
+                return original_stat(path, **kwargs)
+
+            self.enterContext(patch("os.stat", side_effect=stat))
+            self.enterContext(
+                patch(
+                    "os.lstat",
+                    side_effect=lambda path, **kwargs: stat(
+                        path, follow_symlinks=False, **kwargs
+                    ),
+                )
+            )
+            return result
+
+        self.runner.run.side_effect = run
+        session = Session(self.config())
+
+        # WHEN / THEN
+        with self.assertRaises(FuzzingError), session.run():
+            self.fail("An unverifiable coverage cache must not yield a result")
+
+        # THEN
+        self.assertEqual(list(self.root.glob("go-fuzz-work-*")), [])
+
     def test_invalid_corpus_entries_are_rejected_at_construction(self):
         for setting in ("coverage_corpus", "error_corpus"):
             with (
@@ -408,9 +437,7 @@ class TestSession(unittest.TestCase):
 
 class TestFailureReferenceResolution(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.target = Target(
             TargetSelector("example.org/a", "FuzzA"), self.root, self.root
         )
@@ -446,6 +473,16 @@ class TestFailureReferenceResolution(unittest.TestCase):
         # THEN
         self.assertEqual(existing.read_bytes(), b"native corpus")
         self.assertTrue(dangling.is_symlink())
+
+    def test_rejects_unverifiable_native_seed_reference(self):
+        # GIVEN
+        # WHEN / THEN
+        with (
+            patch("os.stat", side_effect=PermissionError("access denied")),
+            patch("os.lstat", side_effect=PermissionError("access denied")),
+            self.assertRaises(FuzzingError),
+        ):
+            _resolve_failure_corpus_file(self.target, "seed#0")
 
     def test_rejects_path_references_even_when_external_file_exists(self):
         # GIVEN

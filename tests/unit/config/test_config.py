@@ -13,16 +13,14 @@ from go_fuzz.filesystem import FilesystemError
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.workspace = self.root / "project"
         self.workspace.mkdir()
         self.temp_root = self.root / "temporary"
 
-        env = patch.dict(os.environ, {"RUNNER_TEMP": str(self.temp_root)})
-        env.start()
-        self.addCleanup(env.stop)
+        self.enterContext(
+            patch.dict(os.environ, {"RUNNER_TEMP": str(self.temp_root)}),
+        )
 
     def config(self, **overrides):
         return Config(

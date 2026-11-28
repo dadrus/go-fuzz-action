@@ -1,6 +1,7 @@
 """Native Go execution, exact target selection and test evidence."""
 
 from .error import NativeGoError
+from .failure_diagnostics import SourceLocation
 from .runner import Runner, TestResult
 from .target import Target
 from .target_selector import SEED_NAME, TargetSelector
@@ -10,6 +11,7 @@ __all__ = [
     "SEED_NAME",
     "NativeGoError",
     "Runner",
+    "SourceLocation",
     "Target",
     "TargetSelector",
     "TestOutcome",

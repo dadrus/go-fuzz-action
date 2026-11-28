@@ -18,9 +18,7 @@ NATIVE = b"go test fuzz v1\n"
 @unittest.skipUnless(shutil.which("go"), "Go toolchain not installed")
 class TestNativeGo(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.project = self.root / "project"
         self.nested = self.project / "internal/a"
         self.nested.mkdir(parents=True)
@@ -77,9 +75,7 @@ func FuzzNoLocation(f *testing.F) {
         self.errors.mkdir()
         self.coverage.mkdir()
 
-        env = patch.dict(os.environ, {"RUNNER_TEMP": str(self.root)})
-        env.start()
-        self.addCleanup(env.stop)
+        self.enterContext(patch.dict(os.environ, {"RUNNER_TEMP": str(self.root)}))
 
     def run_target(self, target, **kwargs):
         return FuzzAnalyzer(
@@ -371,7 +367,7 @@ func FuzzNested(f *testing.F) {
         files = list(outputs.error_corpus.iterdir())
 
         self.assertEqual(len(files), 1)
-        self.assertTrue(files[0].read_bytes().startswith(NATIVE))
+        self.assertStartsWith(files[0].read_bytes(), NATIVE)
         self.assertEqual(
             files[0].name,
             hashlib.sha256(files[0].read_bytes()).hexdigest(),

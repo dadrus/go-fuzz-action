@@ -1,11 +1,10 @@
 """Resolved local Go target and native paths."""
 
-from __future__ import annotations
-
 import json
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from .error import NativeGoError
 from .target_selector import TargetSelector
@@ -34,7 +33,7 @@ class Target:
         project: Path,
         env: dict[str, str],
         logs: Path,
-    ) -> Target:
+    ) -> Self:
         stdout = logs / "package.json"
         stderr = logs / "package.stderr"
 

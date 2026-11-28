@@ -1,7 +1,5 @@
 """Coordinate a complete single-target fuzz analysis."""
 
-from __future__ import annotations
-
 from .config import Config
 from .fuzzing import Session
 from .output import AnalysisResult, ResultWriter

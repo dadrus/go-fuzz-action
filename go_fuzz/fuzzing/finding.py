@@ -1,14 +1,15 @@
 """Finding identity and reproduction information."""
 
-from __future__ import annotations
-
 import hashlib
 import shlex
 from dataclasses import dataclass
+from typing import Self
 
 from ..corpus import File
-from ..native_go import SEED_NAME, Target, TestOutcome
+from ..native_go import SEED_NAME, SourceLocation, Target, TestOutcome
 from .error import FuzzingError
+
+type FindingKey = tuple[str, str, str, str]
 
 
 @dataclass(frozen=True)
@@ -16,7 +17,7 @@ class Finding:
     target: Target
     reference: str
     message: str
-    location: tuple[str, int | None] | None
+    location: SourceLocation | None
     corpus: File | None = None
 
     def __post_init__(self) -> None:
@@ -35,7 +36,7 @@ class Finding:
         reference: str,
         outcome: TestOutcome,
         corpus: File | None,
-    ) -> Finding:
+    ) -> Self:
         return cls(
             target,
             reference,
@@ -53,7 +54,7 @@ class Finding:
         return self.corpus.digest if self.corpus is not None else self.reference
 
     @property
-    def key(self) -> tuple[str, str, str, str]:
+    def key(self) -> FindingKey:
         selector = self.target.selector
 
         return selector.package, selector.name, self.input_kind, self.input_identity

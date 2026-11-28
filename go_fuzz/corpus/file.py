@@ -1,7 +1,5 @@
 """Opaque native input, content identity and replay staging."""
 
-from __future__ import annotations
-
 import hashlib
 import os
 import re

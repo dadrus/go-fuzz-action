@@ -1,10 +1,9 @@
 """Validated flat, file-backed corpus snapshots."""
 
-from __future__ import annotations
-
 from collections.abc import Iterator, Set
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from ..filesystem import require_symlink_free_path
 from .error import CorpusError
@@ -28,7 +27,7 @@ class Snapshot:
         return root.resolve()
 
     @classmethod
-    def load(cls, folder: Path | None) -> Snapshot:
+    def load(cls, folder: Path | None) -> Self:
         if folder is None:
             return cls()
 

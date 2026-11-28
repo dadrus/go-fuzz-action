@@ -13,9 +13,7 @@ PACKAGE = "example.com/project"
 
 class TestEventParser(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.path = Path(temporary.name) / "events"
+        self.path = Path(self.enterContext(tempfile.TemporaryDirectory())) / "events"
 
     def test_parse_and_reject_invalid_event(self):
         # GIVEN

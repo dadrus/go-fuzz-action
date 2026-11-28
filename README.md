@@ -3,7 +3,7 @@
 
 # Go Fuzz Action
 
-This action enables continuous fuzzing workflows for Go projects using Go's [native fuzzing support](https://go.dev/doc/security/fuzz/) by:
+This action enables continuous fuzzing workflows for Go projects (Go 1.21 or newer) using Go's [native fuzzing support](https://go.dev/doc/security/fuzz/) by:
 
 - Replaying previously discovered failing inputs (*error corpus*) to identify persistent bugs.
 - Reusing inputs retained by Go for further exploration (*coverage corpus*), excluding inputs that still fail.
@@ -13,7 +13,11 @@ This action enables continuous fuzzing workflows for Go projects using Go's [nat
 
 Each invocation analyzes a single fuzz target in a temporary copy of the project with a dedicated Go cache.
 
-The action is stateless, does not depend on any additional infrastructure and runs entirely on the workflow runner. Target selection, execution frequency, corpus persistence and handling of findings are controlled by the consuming workflow.
+The action is stateless, requires neither additional Python packages nor additional infrastructure, and runs entirely on the workflow runner. Go toolchain setup, target selection, execution frequency, corpus persistence and handling of findings are controlled by the consuming workflow.
+
+## Prerequisites
+
+The action runs on Linux runners with Python 3.14 or newer (available as `python3`), Bash, and `jq`. GitHub-hosted runners based on Ubuntu 26.04 or newer meet these requirements out of the box. On runners with an older Python version, the consuming workflow must provide the required Python version.
 
 ## Configuration
 
@@ -84,7 +88,7 @@ permissions: {}
 
 jobs:
   fuzz:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -170,7 +174,7 @@ jobs:
   fuzz:
     needs: discover
     if: needs.discover.outputs.targets != '[]'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     permissions:
       contents: read

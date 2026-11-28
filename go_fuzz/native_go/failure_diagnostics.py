@@ -1,7 +1,5 @@
 """Collect attributable native failure diagnostics and locations."""
 
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,6 +11,8 @@ SOURCE = re.compile(r"^(/.+?\.go):(\d+)(?::\d+)?:\s*.*$")
 STACK = re.compile(r"^(/.+?\.go):(\d+)(?:\s+\+0x[0-9a-f]+)?$")
 SEED_FAILURE = re.compile(r"^failure while testing seed corpus entry: ([^/]+)/([^/]+)$")
 SAVED_FAILURE = re.compile(r"^    Failing input written to (.+)$")
+
+type SourceLocation = tuple[str, int | None]
 
 
 @dataclass
@@ -103,7 +103,7 @@ class FailureDiagnostics:
                 self._record_diagnostic_line(line)
 
     @property
-    def location(self) -> tuple[str, int | None] | None:
+    def location(self) -> SourceLocation | None:
         if not self.locations:
             return None
 

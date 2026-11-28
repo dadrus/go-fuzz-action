@@ -1,7 +1,5 @@
 """Execute native Go fuzz tests and preserve their original process results."""
 
-from __future__ import annotations
-
 import subprocess
 import tempfile
 from dataclasses import dataclass
