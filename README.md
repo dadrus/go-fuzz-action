@@ -312,8 +312,9 @@ jobs:
 
 ## If you ...
 
-- ... find the action useful, a star is appreciated.
-- ... encounter a problem or have an idea for an improvement, feel free to open an issue or submit a PR.
+- ... find the action useful, a :star: is appreciated.
+- ... encounter a problem or have an idea for an improvement, feel free to open an [issue](https://github.com/dadrus/go-fuzz-action/issues).
+- ... would like to contribute, take a look at the [contributing guide](./CONTRIBUTING.md).
 
 ## License
 
