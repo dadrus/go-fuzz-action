@@ -3,7 +3,7 @@ name = "go-fuzz-action"
 version = "1.0.0"
 description = "Stateless native Go fuzzing orchestration for GitHub Actions"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.15.2"
 license = { file = "LICENSE" }
 dependencies = []
 
