@@ -1,7 +1,7 @@
 [project]
 name = "go-fuzz-action"
 version = "1.0.1"
-description = "Stateless native Go fuzzing orchestration for GitHub Actions"
+description = "Native Go fuzzing with corpus reuse and SARIF reporting for continuous fuzzing workflows"
 readme = "README.md"
 requires-python = ">=3.14"
 license = { file = "LICENSE" }
