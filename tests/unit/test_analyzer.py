@@ -15,24 +15,22 @@ from go_fuzz.output import OutputError
 
 class TestFuzzAnalyzer(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.config = Config(self.root, "example.com/a", "FuzzA")
         self.target = Target(self.config.selector, self.root, self.root)
 
-        session = patch("go_fuzz.analyzer.Session", autospec=True)
-        self.session_class = session.start()
+        self.session_class = self.enterContext(
+            patch("go_fuzz.analyzer.Session", autospec=True),
+        )
         self.session = self.session_class.return_value
-        self.addCleanup(session.stop)
 
-        output = patch("go_fuzz.analyzer.ResultWriter", autospec=True)
-        self.output_class = output.start()
+        self.output_class = self.enterContext(
+            patch("go_fuzz.analyzer.ResultWriter", autospec=True),
+        )
         self.output = (
             self.output_class.return_value.open.return_value.__enter__.return_value
         )
         self.output_class.return_value.open.return_value.__exit__.return_value = False
-        self.addCleanup(output.stop)
 
     def test_output_is_written_before_session_resources_are_released(self):
         # GIVEN

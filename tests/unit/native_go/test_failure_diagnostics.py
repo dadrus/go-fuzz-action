@@ -20,9 +20,7 @@ SAVED = "    Failing input written to testdata/fuzz/FuzzA/abc\n"
 
 class TestFailureDiagnostics(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.source = self.root / "fuzz_test.go"
         self.source.touch()
         self.target = Target(TargetSelector(PACKAGE, TARGET), self.root, self.root)

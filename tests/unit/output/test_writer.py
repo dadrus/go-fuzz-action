@@ -16,18 +16,14 @@ from go_fuzz.output.writer import AnalysisResult, ResultWriter
 
 class TestResultWriter(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        self.root = Path(tmp.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.source = self.root / "source"
         self.source.mkdir()
         self.target = Target(
             TargetSelector("example.com/a", "FuzzA"), self.source, self.source
         )
 
-        self.env = patch.dict(os.environ, {"RUNNER_TEMP": str(self.root)})
-        self.env.start()
-        self.addCleanup(self.env.stop)
+        self.enterContext(patch.dict(os.environ, {"RUNNER_TEMP": str(self.root)}))
 
     def config(self, **overrides):
         return Config(

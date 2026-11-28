@@ -1,7 +1,5 @@
 """Own a temporary fuzzing session and its native corpus/finding lifecycle."""
 
-from __future__ import annotations
-
 import os
 import shutil
 import tempfile
@@ -31,9 +29,14 @@ def _resolve_failure_corpus_file(target: Target, reference: str) -> File | None:
     if SEED_NAME.fullmatch(reference):
         # A file of this name would make the native seed reference ambiguous.
         path = target.seed_directory / reference
-        if path.exists() or path.is_symlink():
-            raise FuzzingError("Ambiguous native seed reference")
-        return None
+        try:
+            path.lstat()
+        except FileNotFoundError:
+            return None
+        except OSError as exc:
+            raise FuzzingError("Could not inspect native seed reference") from exc
+
+        raise FuzzingError("Ambiguous native seed reference")
 
     if Path(reference).name != reference or reference in {".", ".."}:
         raise FuzzingError("Invalid Go failure reference")
@@ -93,11 +96,14 @@ class Session:
 
             test_logs.append(self._fuzz_target(runner, findings))
 
-            native = (
-                Snapshot.load(cache_directory)
-                if cache_directory.exists() or cache_directory.is_symlink()
-                else Snapshot()
-            )
+            try:
+                cache_directory.lstat()
+            except FileNotFoundError:
+                native = Snapshot()
+            except OSError as exc:
+                raise FuzzingError("Could not inspect native coverage cache") from exc
+            else:
+                native = Snapshot.load(cache_directory)
 
             excluded = findings.file_hashes
             coverage = Snapshot(

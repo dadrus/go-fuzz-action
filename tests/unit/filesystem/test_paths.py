@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from go_fuzz.filesystem.paths import (
     FilesystemError,
@@ -14,9 +15,7 @@ from go_fuzz.filesystem.paths import (
 
 class TestWritePathGuard(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.protected = self.root / "protected"
         self.protected.mkdir()
         self.guard = WritePathGuard((self.protected,))
@@ -85,6 +84,24 @@ class TestWritePathGuard(unittest.TestCase):
         with self.assertRaisesRegex(FilesystemError, "Could not resolve output path"):
             self.guard.resolve_path(loop)
 
+    def test_rejects_output_path_when_a_component_cannot_be_inspected(self):
+        # GIVEN
+        directory = self.root / "directory"
+        directory.mkdir()
+        original_lstat = os.lstat
+
+        def lstat(path, *args, **kwargs):
+            if Path(path) == directory:
+                raise PermissionError("access denied")
+            return original_lstat(path, *args, **kwargs)
+
+        # WHEN / THEN
+        with (
+            patch("os.lstat", side_effect=lstat),
+            self.assertRaises(FilesystemError),
+        ):
+            self.guard.resolve_path(directory / "report")
+
     def test_resolve_directory_accepts_existing_or_new_directory(self):
         # GIVEN
         directory = self.root / "directory"
@@ -102,13 +119,14 @@ class TestWritePathGuard(unittest.TestCase):
         # GIVEN
         file = self.root / "file"
         file.touch()
-        for path in (file, file / "nested"):
+        for path, message in (
+            (file, "Temporary root must be a directory"),
+            (file / "nested", "Output path has a non-directory component"),
+        ):
             # WHEN / THEN
             with (
                 self.subTest(path=path),
-                self.assertRaisesRegex(
-                    FilesystemError, "Temporary root must be a directory"
-                ),
+                self.assertRaisesRegex(FilesystemError, message),
             ):
                 self.guard.resolve_directory(path)
 
@@ -158,3 +176,27 @@ class TestSymlinkFreePath(unittest.TestCase):
                     self.assertRaisesRegex(FilesystemError, "symlink"),
                 ):
                     require_symlink_free_path(path)
+
+    def test_rejects_unverifiable_path_component(self):
+        with tempfile.TemporaryDirectory() as directory:
+            # GIVEN
+            root = Path(directory)
+            original_stat = os.stat
+
+            def stat(path, **kwargs):
+                if isinstance(path, (str, Path)) and Path(path) == root:
+                    raise PermissionError("access denied")
+                return original_stat(path, **kwargs)
+
+            # WHEN / THEN
+            with (
+                patch("os.stat", side_effect=stat),
+                patch(
+                    "os.lstat",
+                    side_effect=lambda path, **kwargs: stat(
+                        path, follow_symlinks=False, **kwargs
+                    ),
+                ),
+                self.assertRaises(FilesystemError),
+            ):
+                require_symlink_free_path(root / "file")

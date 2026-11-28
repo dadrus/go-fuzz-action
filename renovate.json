@@ -42,16 +42,14 @@
       "additionalBranchPrefix": "runtime-"
     },
     {
-      "description": "Propose changes to the minimum supported Python version without pinning the compatibility range.",
+      "description": "Manage the minimum supported Python version manually.",
       "matchManagers": [
         "pep621"
       ],
       "matchDepTypes": [
         "requires-python"
       ],
-      "rangeStrategy": "bump",
-      "semanticCommitType": "deps",
-      "additionalBranchPrefix": "runtime-"
+      "enabled": false
     },
     {
       "description": "Update uv and its build backend together.",
@@ -66,6 +64,9 @@
       "groupName": "uv toolchain"
     }
   ],
+  "pyenv": {
+    "enabled": false
+  },
   "lockFileMaintenance": {
     "enabled": true
   },

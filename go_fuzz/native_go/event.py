@@ -1,7 +1,5 @@
 """Parse the Go JSONL fields needed by classification."""
 
-from __future__ import annotations
-
 import json
 from collections.abc import Iterator
 from dataclasses import dataclass

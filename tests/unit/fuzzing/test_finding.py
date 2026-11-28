@@ -14,9 +14,7 @@ from go_fuzz.native_go import Target, TargetSelector, TestOutcome
 
 class TestFinding(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.target = Target(
             TargetSelector("example.org/a", "FuzzA"), self.root, self.root
         )

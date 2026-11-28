@@ -1,7 +1,5 @@
 """Preserve native Go JSONL events in execution order."""
 
-from __future__ import annotations
-
 import shutil
 from collections.abc import Iterable
 from pathlib import Path

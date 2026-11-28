@@ -1,22 +1,18 @@
 """Persist complete session results, independently of the native Go runner."""
 
-from __future__ import annotations
-
 import shutil
 import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Self
 
 from ..config import Config, ResultsFormat
+from ..fuzzing import SessionResult
 from .error import OutputError
 from .jsonl_report_writer import JsonlReportWriter
 from .sarif_report_writer import SarifReportWriter
-
-if TYPE_CHECKING:
-    from ..fuzzing import SessionResult
 
 
 @dataclass(frozen=True)
@@ -43,7 +39,7 @@ class ResultWriter:
         )
 
     @contextmanager
-    def open(self) -> Iterator[ResultWriter]:
+    def open(self) -> Iterator[Self]:
         if self._directory is not None:
             raise OutputError("Analysis result writer is already open")
 
@@ -77,7 +73,7 @@ class ResultWriter:
 
         report = self._writer.write(directory, result.logs, result.findings)
 
-        if report.parent != directory or report.is_symlink() or not report.is_file():
+        if report.parent != directory or not report.is_file(follow_symlinks=False):
             raise OutputError("Report must be a regular file in the output directory")
 
         self._path_guard.resolve_path(report)

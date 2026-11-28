@@ -15,9 +15,7 @@ NATIVE = b'go test fuzz v1\nstring("bad")\n'
 
 class TestSnapshot(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.input = self.root / "input"
         self.input.mkdir()
 

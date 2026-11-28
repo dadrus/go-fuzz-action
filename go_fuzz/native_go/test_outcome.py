@@ -1,14 +1,13 @@
 """Classify native test completion and associated diagnostics."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from .completion_evidence import CompletionEvidence
 from .error import NativeGoError
 from .event import TEST_EVIDENCE, parse_events
-from .failure_diagnostics import FailureDiagnostics
+from .failure_diagnostics import FailureDiagnostics, SourceLocation
 from .target import Target
 
 
@@ -19,7 +18,7 @@ class TestOutcome:
     failed: bool
     references: frozenset[str]
     message: str
-    location: tuple[str, int | None] | None
+    location: SourceLocation | None
 
     @classmethod
     def classify(
@@ -28,7 +27,7 @@ class TestOutcome:
         returncode: int,
         target: Target,
         test: str,
-    ) -> TestOutcome:
+    ) -> Self:
         selector = target.selector
         completion = CompletionEvidence(test, selector.name)
 

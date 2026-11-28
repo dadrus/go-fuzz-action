@@ -32,9 +32,7 @@ def write_events(path, *events):
 
 class TestTestOutcome(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        self.root = Path(tmp.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.path = self.root / "events"
         self.target = Target(TargetSelector(PACKAGE, "FuzzA"), self.root, self.root)
         (self.root / "fuzz_test.go").write_text("package a\n")

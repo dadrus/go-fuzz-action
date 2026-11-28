@@ -1,11 +1,9 @@
 """Immutable, validated analysis configuration and resolved execution paths."""
 
-from __future__ import annotations
-
 import os
 import tempfile
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from ..corpus import Snapshot
@@ -18,7 +16,7 @@ class ConfigError(FuzzActionError):
     """An invalid analysis configuration value."""
 
 
-class ResultsFormat(str, Enum):
+class ResultsFormat(StrEnum):
     """Supported formats for the generated analysis report."""
 
     JSONL = "jsonl"
@@ -54,7 +52,7 @@ class Config:
 
         try:
             workspace = self.workspace.resolve(strict=True)
-        except (OSError, ValueError, RuntimeError) as exc:
+        except (OSError, ValueError) as exc:
             raise ConfigError("Workspace is not a directory") from exc
 
         if not workspace.is_dir():

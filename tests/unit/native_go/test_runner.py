@@ -12,14 +12,12 @@ from go_fuzz.native_go.runner import Runner
 
 class TestRunner(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory()
-        self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.env = {"GOCACHE": str(self.root / "cache")}
         self.runner = Runner(self.root, self.env, self.root)
-        command = patch("go_fuzz.native_go.runner.subprocess.run", autospec=True)
-        self.command = command.start()
-        self.addCleanup(command.stop)
+        self.command = self.enterContext(
+            patch("go_fuzz.native_go.runner.subprocess.run", autospec=True),
+        )
 
     def test_run_preserves_arguments_context_and_native_result(self):
         # GIVEN
